@@ -6,6 +6,9 @@ import { MenuList } from './MenuList'
 import SmartLink from '@/components/SmartLink'
 import CONFIG from '../config'
 import { useEffect, useRef } from 'react'
+import SocialButton from './SocialButton'
+import { useRouter } from 'next/router'
+import { useSimpleGlobal } from '..'
 
 const getGithubUsername = githubUrl => {
   if (!githubUrl || typeof githubUrl !== 'string') {
@@ -16,7 +19,9 @@ const getGithubUsername = githubUrl => {
     const { pathname } = new URL(githubUrl)
     return pathname.replace(/^\/+|\/+$/g, '')
   } catch (error) {
-    return githubUrl.replace(/^https?:\/\/github\.com\//, '').replace(/^\/+|\/+$/g, '')
+    return githubUrl
+      .replace(/^https?:\/\/github\.com\//, '')
+      .replace(/^\/+|\/+$/g, '')
   }
 }
 
@@ -32,7 +37,20 @@ const resolveEmail = raw => {
 
 const formatTerminalLoginTime = date => {
   const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ]
   const day = String(date.getDate()).padStart(2, '0')
   const hour = String(date.getHours()).padStart(2, '0')
   const minute = String(date.getMinutes()).padStart(2, '0')
@@ -62,7 +80,9 @@ function getOrCreateTerminalSession() {
  * 上方: 站名 → 下方: 导航链接 + 社交图标
  */
 export default function NavBar(props) {
-  const { siteInfo } = useGlobal()
+  const { siteInfo, locale } = useGlobal()
+  const router = useRouter()
+  const { searchModal, localSearchModal } = useSimpleGlobal()
   const avatar =
     siteConfig('CLAUDE_PROFILE_AVATAR', '', CONFIG) ||
     siteConfig('AVATAR') ||
@@ -72,7 +92,8 @@ export default function NavBar(props) {
   const author = siteConfig('AUTHOR') || blogName
   const bio = siteConfig('BIO')
   const githubUrl = siteConfig('CONTACT_GITHUB')
-  const githubLabel = getGithubUsername(githubUrl) || githubUrl?.replace(/^https?:\/\//, '')
+  const githubLabel =
+    getGithubUsername(githubUrl) || githubUrl?.replace(/^https?:\/\//, '')
   const profileEmail = resolveEmail(siteConfig('CONTACT_EMAIL'))
   const hasContact = Boolean(githubUrl || profileEmail)
   const terminalMetaRef = useRef(null)
@@ -82,6 +103,19 @@ export default function NavBar(props) {
   const terminalCursorRef = useRef(null)
   const terminalBodyRef = useRef(null)
   const terminalSession = getOrCreateTerminalSession()
+  const searchLabel = locale?.NAV?.SEARCH || 'Search'
+
+  const handleSearchClick = () => {
+    if (siteConfig('ALGOLIA_APP_ID') && searchModal?.current?.openSearch) {
+      searchModal.current.openSearch()
+      return
+    }
+    if (localSearchModal?.current?.openSearch) {
+      localSearchModal.current.openSearch()
+      return
+    }
+    router.push('/search')
+  }
 
   useEffect(() => {
     const shell = terminalShellRef.current
@@ -119,19 +153,28 @@ export default function NavBar(props) {
 
       const shellLine = terminalShellRef.current
       let size = maxFontSize
-      shellLine.style.setProperty('--claude-terminal-shell-font-size', `${size}px`)
+      shellLine.style.setProperty(
+        '--claude-terminal-shell-font-size',
+        `${size}px`
+      )
 
       const isOverflow = () => {
         const shellWidth = shellLine.clientWidth
-        const textWidth = terminalShellTextRef.current.getBoundingClientRect().width
-        const commandWidth = terminalCommandRef.current.getBoundingClientRect().width
-        const cursorWidth = terminalCursorRef.current.getBoundingClientRect().width
+        const textWidth =
+          terminalShellTextRef.current.getBoundingClientRect().width
+        const commandWidth =
+          terminalCommandRef.current.getBoundingClientRect().width
+        const cursorWidth =
+          terminalCursorRef.current.getBoundingClientRect().width
         return textWidth + commandWidth + cursorWidth > shellWidth
       }
 
       while (size > minFontSize && isOverflow()) {
         size = Math.max(minFontSize, size - step)
-        shellLine.style.setProperty('--claude-terminal-shell-font-size', `${size}px`)
+        shellLine.style.setProperty(
+          '--claude-terminal-shell-font-size',
+          `${size}px`
+        )
       }
     }
 
@@ -182,19 +225,44 @@ export default function NavBar(props) {
           {hasContact && (
             <section className='claude-profile-section claude-profile-contact-section'>
               {githubUrl && (
-                <SmartLink href={githubUrl} className='claude-profile-contact-row'>
+                <SmartLink
+                  href={githubUrl}
+                  className='claude-profile-contact-row'>
                   <i className='fab fa-github claude-profile-contact-icon' />
-                  <span className='claude-profile-contact-value'>{githubLabel}</span>
+                  <span className='claude-profile-contact-value'>
+                    {githubLabel}
+                  </span>
                 </SmartLink>
               )}
               {profileEmail && (
-                <a href={`mailto:${profileEmail}`} className='claude-profile-contact-row'>
+                <a
+                  href={`mailto:${profileEmail}`}
+                  className='claude-profile-contact-row'>
                   <i className='far fa-envelope claude-profile-contact-icon' />
-                  <span className='claude-profile-contact-value'>{profileEmail}</span>
+                  <span className='claude-profile-contact-value'>
+                    {profileEmail}
+                  </span>
                 </a>
               )}
             </section>
           )}
+
+          <section className='claude-profile-section'>
+            <SocialButton />
+          </section>
+
+          <section className='claude-profile-section claude-profile-search-section'>
+            <button
+              type='button'
+              onClick={handleSearchClick}
+              className='claude-search-pill'>
+              <i
+                className='fas fa-magnifying-glass claude-nav-icon'
+                aria-hidden='true'
+              />
+              <span className='claude-nav-label'>{searchLabel}</span>
+            </button>
+          </section>
 
           <section className='claude-profile-section claude-profile-nav-section'>
             <MenuList {...props} />
@@ -208,11 +276,18 @@ export default function NavBar(props) {
                 <span className='claude-terminal-dot claude-terminal-dot-green' />
               </div>
               <div className='claude-terminal-body' ref={terminalBodyRef}>
-                <div className='claude-terminal-line claude-terminal-meta' ref={terminalMetaRef}>
-                  Last login: {terminalSession.loginTime} on {terminalSession.tty}
+                <div
+                  className='claude-terminal-line claude-terminal-meta'
+                  ref={terminalMetaRef}>
+                  Last login: {terminalSession.loginTime} on{' '}
+                  {terminalSession.tty}
                 </div>
-                <div className='claude-terminal-line claude-terminal-shell' ref={terminalShellRef}>
-                  <span className='claude-terminal-shell-text' ref={terminalShellTextRef}>
+                <div
+                  className='claude-terminal-line claude-terminal-shell'
+                  ref={terminalShellRef}>
+                  <span
+                    className='claude-terminal-shell-text'
+                    ref={terminalShellTextRef}>
                     {`${author}@Macintosh ~ % `}
                   </span>
                   <span ref={terminalCommandRef}>
@@ -220,7 +295,11 @@ export default function NavBar(props) {
                       {blogName}
                     </SmartLink>
                   </span>
-                  <span className='claude-terminal-cursor' ref={terminalCursorRef} aria-hidden='true' />
+                  <span
+                    className='claude-terminal-cursor'
+                    ref={terminalCursorRef}
+                    aria-hidden='true'
+                  />
                 </div>
               </div>
             </div>
@@ -237,6 +316,19 @@ export default function NavBar(props) {
             </div>
           </SmartLink>
         </header>
+
+        <SocialButton />
+
+        <button
+          type='button'
+          onClick={handleSearchClick}
+          className='claude-search-pill'>
+          <i
+            className='fas fa-magnifying-glass claude-nav-icon'
+            aria-hidden='true'
+          />
+          <span className='claude-nav-label'>{searchLabel}</span>
+        </button>
 
         <nav>
           <MenuList {...props} />

@@ -3,6 +3,8 @@ import { useGlobal } from '@/lib/global'
 import { siteConfig } from '@/lib/config'
 import { formatDateFmt } from '@/lib/utils/formatDate'
 import NotionIcon from '@/components/NotionIcon'
+import LazyImage from '@/components/LazyImage'
+import CONFIG from '../config'
 
 /**
  * 文章描述
@@ -13,9 +15,21 @@ export default function ArticleInfo(props) {
   const { post } = props
 
   const { locale } = useGlobal()
+  const showArticleCover = siteConfig('CLAUDE_ARTICLE_COVER_ENABLE', true, CONFIG)
+  const articleCoverSrc = post?.pageCover || post?.pageCoverThumbnail
 
   return (
     <section className='mt-2 text-gray-600 dark:text-gray-400 leading-8'>
+      {showArticleCover && post?.type === 'Post' && articleCoverSrc && (
+        <div className='claude-article-cover-wrap'>
+          <LazyImage
+            alt={post?.title ? `封面：${post.title}` : '文章封面'}
+            src={articleCoverSrc}
+            className='claude-article-cover-image'
+          />
+        </div>
+      )}
+
       <h2 className='blog-item-title mb-5 font-bold text-black dark:text-white text-4xl no-underline'>
         {siteConfig('POST_TITLE_ICON') && <NotionIcon icon={post?.pageIcon} />}
         {post?.title}

@@ -1,4 +1,5 @@
 import SmartLink from '@/components/SmartLink'
+import NotionPage from '@/components/NotionPage'
 import { siteConfig } from '@/lib/config'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import CONFIG from '../config'
@@ -142,7 +143,8 @@ const getLastSlugPart = value => {
 
 const isReadmeLikePage = page => {
   if (!page) return false
-  return getLastSlugPart(page.slug) === 'readme.md'
+  const lastSlugPart = getLastSlugPart(page.slug)
+  return lastSlugPart === 'readme' || lastSlugPart === 'readme.md'
 }
 
 const sanitizeReadmeHtml = html => {
@@ -172,6 +174,7 @@ export default function ProfileHome(props) {
     [readmeSource?.readmeHtml]
   )
   const readmeExcerpt = readmeSource?.excerpt || ''
+  const hasReadmeBlockMap = Boolean(readmeSource?.blockMap?.block)
 
   const timelinePosts = useMemo(() => {
     return posts
@@ -370,6 +373,25 @@ export default function ProfileHome(props) {
         })
         lastMonthKey = markerKey
       }
+
+      // 起始区间常出现“残缺月 + 下一月”仅相隔 1 列的情况（如 May/Jun），
+      // 会造成标签文字重叠。这里做一次最小间距去重，优先保留后一个月标签。
+      const dedupedMonthMarkers = []
+      const minWeekGap = 2
+      monthMarkers.forEach(marker => {
+        const last = dedupedMonthMarkers[dedupedMonthMarkers.length - 1]
+        if (!last) {
+          dedupedMonthMarkers.push(marker)
+          return
+        }
+        if (marker.weekIndex - last.weekIndex < minWeekGap) {
+          dedupedMonthMarkers[dedupedMonthMarkers.length - 1] = marker
+          return
+        }
+        dedupedMonthMarkers.push(marker)
+      })
+      monthMarkers.length = 0
+      monthMarkers.push(...dedupedMonthMarkers)
     }
 
     return { cells, weekCount, monthMarkers }
@@ -619,6 +641,10 @@ export default function ProfileHome(props) {
               className='markdown-body'
               dangerouslySetInnerHTML={{ __html: readmeHtml }}
             />
+          ) : hasReadmeBlockMap ? (
+            <div className='markdown-body'>
+              <NotionPage post={readmeSource} />
+            </div>
           ) : (
             <p className='claude-readme-card-excerpt'>{readmeExcerpt}</p>
           )}

@@ -9,6 +9,35 @@ import { generateRedirectJson } from '@/lib/utils/redirect'
 import { checkDataFromAlgolia } from '@/lib/plugins/algolia'
 import pLimit from 'p-limit'
 
+const getLastSlugPart = value => {
+  if (!value || typeof value !== 'string') return ''
+  try {
+    return decodeURIComponent(value)
+      .split('?')[0]
+      .split('#')[0]
+      .replace(/^\/+|\/+$/g, '')
+      .replace(/\.html$/i, '')
+      .split('/')
+      .pop()
+      .toLowerCase()
+  } catch (error) {
+    return value
+      .split('?')[0]
+      .split('#')[0]
+      .replace(/^\/+|\/+$/g, '')
+      .replace(/\.html$/i, '')
+      .split('/')
+      .pop()
+      .toLowerCase()
+  }
+}
+
+const isReadmeLikePage = page => {
+  if (!page) return false
+  const lastSlugPart = getLastSlugPart(page.slug)
+  return lastSlugPart === 'readme' || lastSlugPart === 'readme.md'
+}
+
 /**
  * 首页布局
  * @param {*} props
@@ -82,6 +111,20 @@ export async function getStaticProps(req) {
         })
       )
     )
+  }
+
+  // Claude 首页 README 卡片：独立提取 README 页面并补齐正文 blockMap
+  // 避免受 posts 过滤条件（仅 Post+Published）影响导致 README 丢失。
+  const readmePage = props.allPages?.find(isReadmeLikePage) || null
+  if (readmePage?.id) {
+    try {
+      readmePage.blockMap = await getPostBlocks(readmePage.id, 'index-readme')
+    } catch (error) {
+      console.warn('[index] 获取 README blockMap 失败:', readmePage.id, error)
+    }
+    props.readmePage = readmePage
+  } else {
+    props.readmePage = null
   }
 
   const isBuildLifecycle = ['build', 'export'].includes(

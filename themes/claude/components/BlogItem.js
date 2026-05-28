@@ -8,19 +8,21 @@ import CONFIG from '../config'
 
 export const BlogItem = props => {
   const { post } = props
-  const { NOTION_CONFIG } = useGlobal()
+  const { NOTION_CONFIG, siteInfo } = useGlobal()
   const showPageCover = siteConfig('CLAUDE_POST_COVER_ENABLE', false, CONFIG)
+  const coverSrc = post?.pageCoverThumbnail || post?.pageCover || siteInfo?.pageCover
+  const shouldShowCover = showPageCover && Boolean(coverSrc)
   const showPreview =
     siteConfig('POST_LIST_PREVIEW', false, NOTION_CONFIG) && post.blockMap
   return (
     <div key={post.id} className='claude-article-item'>
       <div className='flex'>
         <div className='article-cover h-full'>
-          {showPageCover && (
+          {shouldShowCover && (
             <div className='overflow-hidden mr-3 w-48 h-full rounded-lg'>
               <SmartLink href={post.href} passHref legacyBehavior>
                 <LazyImage
-                  src={post?.pageCoverThumbnail}
+                  src={coverSrc}
                   className='w-48 h-full object-cover object-center hover:scale-105 duration-300'
                 />
               </SmartLink>

@@ -2,7 +2,7 @@ import BLOG, { LAYOUT_MAPPINGS } from '@/blog.config'
 import getConfig from 'next/config'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
-import { getQueryParam, getQueryVariable, isBrowser } from '../lib/utils'
+import { getQueryVariable, isBrowser } from '../lib/utils'
 
 // 在next.config.js中扫描所有主题
 export const { THEMES = [] } = getConfig()?.publicRuntimeConfig || {}
@@ -64,13 +64,9 @@ export const getThemeConfig = async themeQuery => {
 }
 
 /**
- * 获取当前主题（query 主题优先，且做合法性校验）
+ * 获取当前主题（仅允许配置来源；忽略 URL 查询参数 theme）
  */
 const getCurrentTheme = (router, fallbackTheme) => {
-  const queryTheme = getQueryParam(router?.asPath, 'theme')
-  if (queryTheme) {
-    return normalizeThemeName(queryTheme)
-  }
   return normalizeThemeName(fallbackTheme || BLOG.THEME)
 }
 

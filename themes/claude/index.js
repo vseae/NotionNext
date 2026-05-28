@@ -44,6 +44,12 @@ const WWAds = dynamic(() => import('@/components/WWAds'), { ssr: false })
 const BlogListPage = dynamic(() => import('./components/BlogListPage'), {
   ssr: false
 })
+const SearchButton = dynamic(() => import('./components/SearchButton'), {
+  ssr: false
+})
+const SearchModal = dynamic(() => import('./components/SearchModal'), {
+  ssr: false
+})
 const RecommendPosts = dynamic(() => import('./components/RecommendPosts'), {
   ssr: false
 })
@@ -79,6 +85,7 @@ const LayoutBase = props => {
   const { onLoading } = useGlobal()
   const router = useRouter()
   const searchModal = useRef(null)
+  const localSearchModal = useRef(null)
   const hasToc = props.post?.toc && props.post.toc.length > 0
   const tocEnable = siteConfig('CLAUDE_TOC_ENABLE', true, CONFIG)
   const isHomePage = router?.pathname === '/'
@@ -110,7 +117,7 @@ const LayoutBase = props => {
   }, [])
 
   return (
-    <ThemeGlobalSimple.Provider value={{ searchModal }}>
+    <ThemeGlobalSimple.Provider value={{ searchModal, localSearchModal }}>
       <div
         id='theme-claude'
         className={`${siteConfig('FONT_STYLE')} ${isHomePage ? 'claude-page-home' : 'claude-page-subpage'} h-screen flex flex-col overflow-hidden`}>
@@ -168,7 +175,12 @@ const LayoutBase = props => {
           <JumpToTopButton />
         </div>
 
+        <div className='claude-global-search-button'>
+          <SearchButton />
+        </div>
+
         <AlgoliaSearchModal cRef={searchModal} {...props} />
+        <SearchModal cRef={localSearchModal} />
       </div>
     </ThemeGlobalSimple.Provider>
   )

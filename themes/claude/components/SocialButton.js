@@ -1,10 +1,19 @@
 import { siteConfig } from '@/lib/config'
+import { decryptEmail } from '@/lib/plugins/mailEncrypt'
 
 /**
  * 社交联系方式 — Claude Docs 风格
  * 小图标水平行，含 padding 防止 hover 溢出
  */
 const SocialButton = () => {
+  const rawEmail = siteConfig('CONTACT_EMAIL')
+  const email =
+    typeof rawEmail === 'string' && rawEmail
+      ? rawEmail.includes('@')
+        ? rawEmail
+        : decryptEmail(rawEmail)
+      : ''
+
   return (
     <div className='claude-social-row flex-wrap'>
       {siteConfig('CONTACT_GITHUB') && (
@@ -37,8 +46,8 @@ const SocialButton = () => {
           <i className='fab fa-instagram' />
         </a>
       )}
-      {siteConfig('CONTACT_EMAIL') && (
-        <a target='_blank' rel='noreferrer' title='Email' href={`mailto:${siteConfig('CONTACT_EMAIL')}`}>
+      {email && (
+        <a target='_blank' rel='noreferrer' title='Email' href={`mailto:${email}`}>
           <i className='fas fa-envelope' />
         </a>
       )}

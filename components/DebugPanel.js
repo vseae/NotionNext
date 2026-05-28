@@ -1,8 +1,6 @@
 import { siteConfigMap } from '@/lib/config'
 import { useGlobal } from '@/lib/global'
-import { getQueryParam } from '@/lib/utils'
 import { THEMES } from '@/themes/theme'
-import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import Select from './Select'
 
@@ -12,9 +10,8 @@ import Select from './Select'
  */
 const DebugPanel = () => {
   const [show, setShow] = useState(false)
-  const { theme, switchTheme, locale } = useGlobal()
-  const router = useRouter()
-  const currentTheme = getQueryParam(router.asPath, 'theme') || theme
+  const { theme, locale } = useGlobal()
+  const currentTheme = theme
   const [siteConfig, updateSiteConfig] = useState({})
 
   // 主题下拉框
@@ -28,13 +25,8 @@ const DebugPanel = () => {
     setShow(!show)
   }
 
-  function handleChangeDebugTheme() {
-    switchTheme()
-  }
-
-  function handleUpdateDebugTheme(newTheme) {
-    const query = { ...router.query, theme: newTheme }
-    router.push({ pathname: router.pathname, query })
+  function handleUpdateDebugTheme() {
+    return null
   }
 
   function filterResult(text) {
@@ -76,10 +68,8 @@ const DebugPanel = () => {
               options={themeOptions}
               onChange={handleUpdateDebugTheme}
             />
-            <div
-              className='p-2 cursor-pointer'
-              onClick={handleChangeDebugTheme}>
-              <i className='fas fa-sync' />
+            <div className='px-2 text-xs text-gray-500'>
+              主题仅支持配置修改
             </div>
           </div>
 

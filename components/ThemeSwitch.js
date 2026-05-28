@@ -1,7 +1,5 @@
 import { useGlobal } from '@/lib/global'
-import { getQueryParam } from '@/lib/utils'
 import { THEMES } from '@/themes/theme'
-import { useRouter } from 'next/router'
 import { useState } from 'react'
 import DarkModeButton from './DarkModeButton'
 import { Draggable } from './Draggable'
@@ -13,15 +11,8 @@ import SideBarDrawer from './SideBarDrawer'
  */
 const ThemeSwitch = () => {
   const { theme, locale, isDarkMode, toggleDarkMode } = useGlobal()
-  const router = useRouter()
-  const currentTheme = getQueryParam(router.asPath, 'theme') || theme
+  const currentTheme = theme
   const [sideBarVisible, setSideBarVisible] = useState(false)
-
-  const changeTheme = newTheme => {
-    const query = router.query
-    query.theme = newTheme
-    router.push({ pathname: router.pathname, query }).then(() => {})
-  }
 
   return (
     <>
@@ -94,8 +85,8 @@ const ThemeSwitch = () => {
 
         <hr className='my-4 dark:border-gray-600' />
 
-        <div>点击下方主题进行切换.</div>
-        <div> Click below to switch the theme.</div>
+        <div>主题切换已禁用，请在配置中修改主题并重启服务生效。</div>
+        <div>Theme switching is disabled. Update theme via config and restart.</div>
 
         {/* 陈列所有主题 */}
         <div className='grid lg:grid-cols-2 gap-6'>
@@ -103,17 +94,14 @@ const ThemeSwitch = () => {
             return (
               <div
                 className='my-6'
-                key={t}
-                onClick={() => {
-                  changeTheme(t)
-                }}>
+                key={t}>
                 <div className='text-lg dark:text-white font-bold uppercase mb-4'>
                   {t}
                 </div>
                 <LazyImage
                   src={`/images/themes-preview/${t}.webp`}
                   fallbackSrc={`/images/themes-preview/${t}.png`}
-                  className='cursor-pointer shadow-lg rounded-xl hover:scale-110 duration-200'
+                  className='shadow-lg rounded-xl'
                 />
               </div>
             )
