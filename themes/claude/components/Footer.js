@@ -1,5 +1,4 @@
 import { siteConfig } from '@/lib/config'
-import DarkModeButton from './DarkModeButton'
 import CONFIG from '../config'
 
 /**
@@ -15,7 +14,6 @@ export default function Footer(props) {
 
   return (
     <footer className='claude-footer'>
-      <DarkModeButton className='mb-3' />
       <div>
         {customCopyright || `© ${copyrightDate} ${siteConfig('AUTHOR')}`}
       </div>
