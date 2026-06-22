@@ -44,9 +44,6 @@ const WWAds = dynamic(() => import('@/components/WWAds'), { ssr: false })
 const BlogListPage = dynamic(() => import('./components/BlogListPage'), {
   ssr: false
 })
-const SearchButton = dynamic(() => import('./components/SearchButton'), {
-  ssr: false
-})
 const SearchModal = dynamic(() => import('./components/SearchModal'), {
   ssr: false
 })
@@ -173,10 +170,6 @@ const LayoutBase = props => {
 
         <div className='fixed right-4 bottom-4 z-20'>
           <JumpToTopButton />
-        </div>
-
-        <div className='claude-global-search-button'>
-          <SearchButton />
         </div>
 
         <AlgoliaSearchModal cRef={searchModal} {...props} />
